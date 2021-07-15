@@ -1,4 +1,4 @@
-package config
+package mgconfig
 
 import (
 	"github.com/go-redis/redis"

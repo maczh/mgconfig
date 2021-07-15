@@ -1,4 +1,4 @@
-package config
+package mgconfig
 
 import (
 	jsoniter "github.com/json-iterator/go"
