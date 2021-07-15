@@ -1,21 +1,21 @@
 # mgconfig Go语言统一配置管理
 
-## 配置文件格式
+##配置文件格式
 
 仅支持.yml格式
 
-## 支持的统一配置中心
+##支持的统一配置中心
 
 + Nacos
 + Spring Cloud Config
 + Consul
 
-## 支持的微服务发现与注册中心
+##支持的微服务发现与注册中心
 
 + Nacos
 + Consul
 
-## 支持的数据库
+##支持的数据库
 
 + MySQL （Gorm v1)
 + PostgreSQL (Gorm v1)
@@ -28,21 +28,21 @@
 + Hive (gohive)
 + InfluxDB
 
-## 支持的消息队列
+##支持的消息队列
 
 + RabbitMQ (jazz)
 
-## 支持的搜索引擎
+##支持的搜索引擎
 
 + ElasticSearch (olivere/elastic)
 + 阿里云 OpenSearch
 
-## 安装
+##安装
 ```
 go get -u github.com/maczh/mgconfig
 ```
 
-## 使用方法
+##使用方法
 
 ### 本地配置文件
 
@@ -146,7 +146,7 @@ go:
 ```
 如果vhost中有/，那在vhost之前加上%2f
 
-### 在应用中加载配置
+###在应用中加载配置
 
 * 在main中加载配置，加载之后所有go.config.used配置中指定的数据库均已经从配置服务器获取相应配置并自动创建连接，数据库公共对象即已经可用
 * 加载配置之后，如果used包含nacos或consul，则自动在相应的服务发现与注册中心自动注册本微服务
@@ -157,13 +157,13 @@ go:
     mgconfig.InitConfig(config_file)
 ```
 
-### 程序退出时关闭所有数据库连接和注销服务
+###程序退出时关闭所有数据库连接和注销服务
 
 ```
     mgconfig.SafeExit()
 ```
 
-### 在应用中使用MySQL单连接范例
+###在应用中使用MySQL单连接范例
 
 ```
 func GetUserById(id uint) (*pojo.User) {
@@ -189,7 +189,7 @@ func GetUserById(id uint) (*pojo.User) {
 }
 ```
 
-### 修改默认数据库检查时间，默认为5分钟一次
+###修改默认数据库检查时间，默认为5分钟一次
 
 在`conf.go`文件头部修改常量
 
@@ -197,7 +197,7 @@ func GetUserById(id uint) (*pojo.User) {
 const AUTO_CHECK_MINUTES = 5	//自动检查连接间隔时间，单位为分钟
 ```
 
-### 在应用中读取主配置文件内容
+###在应用中读取主配置文件内容
 
 ```
     //读取字符串配置
