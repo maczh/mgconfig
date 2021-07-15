@@ -38,7 +38,7 @@
 + 阿里云 OpenSearch
 
 ## 安装
-```
+```shell script
 go get -u github.com/maczh/mgconfig
 ```
 
@@ -47,7 +47,7 @@ go get -u github.com/maczh/mgconfig
 ### 本地配置文件
 
 + 默认文件名为`application.yml`，可自定义名称，配置内容如下
-```
+```yaml
 go:
   application:
     name: myapp         #应用名称,用于自动注册微服务时的服务名
@@ -79,7 +79,7 @@ go:
       influxdb: influxdb
 ```
 + mysql配置范例 mysql-go-test.yml
-```
+```yaml
 go:
   data:
     mysql: user:pwd@tcp(xxx.xxx.xxx.xxx:3306)/dbname?charset=utf8&parseTime=True&loc=Local
@@ -90,7 +90,7 @@ go:
       timeout: 300  #空闲超时少数，超时后自动断开空闲连接  
 ```
 + mongodb配置范例 mongodb-go-test.yml
-```
+```yaml
 go:
   data:
     mongodb:
@@ -103,7 +103,7 @@ go:
       timeout: 300  #空闲超时少数，超时后自动断开空闲连接  
 ```
 + redis配置范例 redis-go-test.yml
-```
+```yaml
 go:
   data:
     redis:
@@ -119,7 +119,7 @@ go:
       timeout: 1000
 ```
 + ssdb配置范例 ssdb-go-test.yml
-```
+```yaml
 go:
   data:
     ssdb:
@@ -129,7 +129,7 @@ go:
       timeout: 3000
 ```
 + nacos配置范例 nacos-go-test.yml
-```
+```yaml
 go:
   nacos:
     clusterName: DEFAULT
@@ -138,7 +138,7 @@ go:
     weight: 1
 ```
 + rabbitmq配置范例 rabbitmq-go-test.yml
-```
+```yaml
 go:
   rabbitmq:
     uri: amqp://user:password@xxx.xxx.xxx.xxx:5672/vhost
@@ -150,7 +150,7 @@ go:
 
 * 在main中加载配置，加载之后所有go.config.used配置中指定的数据库均已经从配置服务器获取相应配置并自动创建连接，数据库公共对象即已经可用
 * 加载配置之后，如果used包含nacos或consul，则自动在相应的服务发现与注册中心自动注册本微服务
-```
+```go
     import "github.com/maczh/mgconfig"
 
     config_file := "/path/to/myapp.yml"
@@ -159,13 +159,13 @@ go:
 
 ### 程序退出时关闭所有数据库连接和注销服务
 
-```
+```go
     mgconfig.SafeExit()
 ```
 
 ### 在应用中使用MySQL单连接范例
 
-```
+```go
 func GetUserById(id uint) (*pojo.User) {
 	user := new(pojo.User)
 	mgconfig.Mysql.Table("user_info").Where("id = ?",id).First(&user)
@@ -176,7 +176,7 @@ func GetUserById(id uint) (*pojo.User) {
 
 ### 在应用中使用MySQL连接池范例
 
-```
+```go
 func GetUserById(id uint) (*pojo.User) {
 	user := new(pojo.User)
     //从连接池中获取连接
@@ -193,13 +193,13 @@ func GetUserById(id uint) (*pojo.User) {
 
 在`conf.go`文件头部修改常量
 
-```
+```go
 const AUTO_CHECK_MINUTES = 5	//自动检查连接间隔时间，单位为分钟
 ```
 
 ### 在应用中读取主配置文件内容
 
-```
+```go
     //读取字符串配置
     mgconfig.GetConfigString("path.img.temp")
     //读取整数配置
