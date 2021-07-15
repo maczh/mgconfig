@@ -101,6 +101,9 @@ func InitConfig(cf string) {
 }
 
 func GetConfigString(name string) string {
+	if conf == nil {
+		return ""
+	}
 	if conf.Exists(name) {
 		return conf.String(name)
 	} else {
@@ -109,6 +112,9 @@ func GetConfigString(name string) string {
 }
 
 func GetConfigInt(name string) int {
+	if conf == nil {
+		return 0
+	}
 	if conf.Exists(name) {
 		return conf.Int(name)
 	} else {
