@@ -181,11 +181,11 @@ func GetUserById(id uint) (*pojo.User) {
 	user := new(pojo.User)
     //从连接池中获取连接
     mysql := mgconfig.GetMysqlConnection()
-	mysql.Table("user_info").Where("id = ?",id).First(&user)
-	logs.Debug("查詢結果:",user)
+    mysql.Table("user_info").Where("id = ?",id).First(&user)
+    logs.Debug("查詢結果:",user)
     //归还连接到连接池
     mgconfig.ReturnMysqlConnection(mysql)
-	return user
+    return user
 }
 ```
 
