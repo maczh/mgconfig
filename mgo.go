@@ -59,7 +59,7 @@ func mgoInit() {
 				IdleTimeout: time.Duration(idleTimeout) * time.Second,
 			}
 			var err error
-			mysqlPool, err = pool.NewChannelPool(poolConfig)
+			mgoPool, err = pool.NewChannelPool(poolConfig)
 			if err != nil {
 				logger.Error("MongoDB连接池初始化错误")
 			}
@@ -96,11 +96,14 @@ func GetMongoConnection() *mgo.Database {
 		logger.Error("MongoDB连接池错误:" + err.Error())
 		return nil
 	}
+	if conn == nil {
+		return nil
+	}
 	return conn.(*mgo.Database)
 }
 
 func ReturnMongoConnection(conn *mgo.Database) {
-	if mgoPool == nil || mgoPool.Len() == 0 {
+	if mgoPool == nil || mgoPool.Len() == 0 || conn == nil {
 		return
 	}
 	err := mgoPool.Put(conn)

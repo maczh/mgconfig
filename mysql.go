@@ -96,11 +96,14 @@ func GetMysqlConnection() *gorm.DB {
 		logger.Error("获取MySQL连接池中的连接失败:" + err.Error())
 		return nil
 	}
+	if conn == nil {
+		return nil
+	}
 	return conn.(*gorm.DB)
 }
 
 func ReturnMysqlConnection(conn *gorm.DB) {
-	if mysqlPool == nil || mysqlPool.Len() == 0 {
+	if mysqlPool == nil || mysqlPool.Len() == 0 || conn == nil {
 		return
 	}
 	err := mysqlPool.Put(conn)
