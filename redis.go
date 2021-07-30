@@ -14,14 +14,6 @@ import (
 var Redis *redis.Client
 var redisPool pool.Pool
 
-func redisFactory(ro redis.Options) (*redis.Client, error) {
-	goredis := redis.NewClient(&ro)
-	if goredis == nil {
-		return nil, errors.New("Redis Connection failed")
-	}
-	return goredis, goredis.Ping().Err()
-}
-
 func redisInit() {
 	if Redis == nil {
 		redisConfigUrl := getConfigUrl(conf.String("go.config.prefix.redis"))
@@ -95,7 +87,7 @@ func RedisCheck() {
 	}
 }
 
-func GeRedisConnection() *redis.Client {
+func GetRedisConnection() *redis.Client {
 	if redisPool == nil || redisPool.Len() == 0 {
 		logger.Error("未初始化Redis连接池")
 		return Redis
@@ -119,4 +111,12 @@ func ReturnRedisConnection(conn *redis.Client) {
 	if err != nil {
 		logger.Error("归还Redis连接给连接池错误:" + err.Error())
 	}
+}
+
+func redisFactory(ro redis.Options) (*redis.Client, error) {
+	goredis := redis.NewClient(&ro)
+	if goredis == nil {
+		return nil, errors.New("Redis Connection failed")
+	}
+	return goredis, goredis.Ping().Err()
 }
