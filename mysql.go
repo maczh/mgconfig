@@ -103,7 +103,7 @@ func GetMysqlConnection() *gorm.DB {
 }
 
 func ReturnMysqlConnection(conn *gorm.DB) {
-	if mysqlPool == nil || mysqlPool.Len() == 0 || conn == nil {
+	if mysqlPool == nil || conn == nil {
 		return
 	}
 	err := mysqlPool.Put(conn)

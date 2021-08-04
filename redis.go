@@ -104,7 +104,7 @@ func GetRedisConnection() *redis.Client {
 }
 
 func ReturnRedisConnection(conn *redis.Client) {
-	if redisPool == nil || redisPool.Len() == 0 || conn == nil {
+	if redisPool == nil || conn == nil {
 		return
 	}
 	err := redisPool.Put(conn)
