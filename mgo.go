@@ -90,7 +90,7 @@ func MgoCheck() {
 }
 
 func GetMongoConnection() *mgo.Database {
-	if mgoPool == nil || mgoPool.Len() == 0 {
+	if mgoPool == nil {
 		logger.Error("MongoDB连接池未初始化")
 		return Mgo
 	}

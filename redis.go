@@ -88,7 +88,7 @@ func RedisCheck() {
 }
 
 func GetRedisConnection() *redis.Client {
-	if redisPool == nil || redisPool.Len() == 0 {
+	if redisPool == nil {
 		logger.Error("未初始化Redis连接池")
 		return Redis
 	}
