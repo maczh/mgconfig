@@ -29,7 +29,7 @@ func redisInit() {
 		if err := Redis.Ping().Err(); err != nil {
 			logger.Error("Redis连接失败:" + err.Error())
 		}
-		if cfg.Int("go.data.redis_pool.max") > 1 && (mgoPool == nil || mgoPool.Len() == 0) {
+		if cfg.Int("go.data.redis_pool.max") > 1 && (redisPool == nil || redisPool.Len() == 0) {
 			factory := func() (interface{}, error) { return redisFactory(ro) }
 			close := func(v interface{}) error { return v.(*redis.Client).Close() }
 			ping := func(v interface{}) error { return v.(*redis.Client).Ping().Err() }
