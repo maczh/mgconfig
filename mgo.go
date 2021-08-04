@@ -31,8 +31,8 @@ func mgoInit() {
 		}
 		if cfg.Int("go.data.mongo_pool.max") > 1 && (mgoPool == nil || mgoPool.Len() == 0) {
 			factory := func() (interface{}, error) { return mgo.Dial(cfg.String("go.data.mongodb.uri")) }
-			close := func(v interface{}) error { v.(*mgo.Database).Session.Close(); return nil }
-			ping := func(v interface{}) error { return v.(*mgo.Database).Session.Ping() }
+			close := func(v interface{}) error { v.(*mgo.Session).Close(); return nil }
+			ping := func(v interface{}) error { return v.(*mgo.Session).Ping() }
 			min := cfg.Int("go.data.mongo_pool.min")
 			if min == 0 {
 				min = 2
