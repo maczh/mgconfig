@@ -58,6 +58,10 @@ func registerNacos() {
 		if conf.Exists("go.application.ip") {
 			ip = conf.String("go.application.ip")
 		}
+		metadata := make(map[string]string)
+		if conf.Exists("go.application.cert") {
+			metadata["ssl"] = "true"
+		}
 		cluster = cfg.String("go.nacos.clusterName")
 		success, regerr := Nacos.RegisterInstance(vo.RegisterInstanceParam{
 			Ip:          ip,
@@ -68,6 +72,7 @@ func registerNacos() {
 			Enable:      true,
 			Healthy:     true,
 			Ephemeral:   true,
+			Metadata:    metadata,
 		})
 		if !success {
 			logger.Error("Nacos注册服务失败:" + regerr.Error())
@@ -98,6 +103,9 @@ func GetNacosServiceURL(servicename string) string {
 		return ""
 	}
 	url := "http://" + instance.Ip + ":" + strconv.Itoa(int(instance.Port))
+	if instance.Metadata != nil && instance.Metadata["ssl"] == "true" {
+		url = "https://" + instance.Ip + ":" + strconv.Itoa(int(instance.Port))
+	}
 	logger.Debug("Nacos获取" + servicename + "服务成功:" + url)
 	return url
 }
