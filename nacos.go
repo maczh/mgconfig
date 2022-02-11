@@ -45,9 +45,14 @@ func registerNacos() {
 			ContextPath: "/nacos",
 		}
 		logger.Debug("Nacos服务器配置: " + toJSON(server))
+		clientCfg := constant.ClientConfig{
+			UpdateCacheWhenEmpty: true,
+			LogLevel:             "error",
+		}
 		var err error
 		Nacos, err = clients.CreateNamingClient(map[string]interface{}{
 			"serverConfigs": []constant.ServerConfig{server},
+			"clientConfig": clientCfg,
 		})
 		if err != nil {
 			logger.Error("Nacos服务连接失败:" + err.Error())
