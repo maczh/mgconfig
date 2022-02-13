@@ -55,7 +55,7 @@ func registerNacos() {
 		if conf.Exists("go.nacos.clientConfig.updateCacheWhenEmpty") {
 			clientConfig.UpdateCacheWhenEmpty = conf.Bool("go.nacos.client.updateCacheWhenEmpty")
 		}
-		logger.Debug("Nacos客户端配置: " + toJSON(serverConfig))
+		logger.Debug("Nacos客户端配置: " + toJSON(clientConfig))
 		var err error
 		Nacos, err = clients.CreateNamingClient(map[string]interface{}{
 			"serverConfigs": []constant.ServerConfig{serverConfig},
