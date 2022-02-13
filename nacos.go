@@ -1,6 +1,10 @@
 package mgconfig
 
 import (
+	"net"
+	"strconv"
+	"strings"
+
 	jsoniter "github.com/json-iterator/go"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
@@ -11,9 +15,6 @@ import (
 	"github.com/nacos-group/nacos-sdk-go/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/model"
 	"github.com/nacos-group/nacos-sdk-go/vo"
-	"net"
-	"strconv"
-	"strings"
 )
 
 var Nacos naming_client.INamingClient
@@ -39,15 +40,26 @@ func registerNacos() {
 		resp, _ := grequests.Get(nacosConfigUrl, nil)
 		cfg := koanf.New(".")
 		cfg.Load(rawbytes.Provider([]byte(resp.String())), yaml.Parser())
-		server := constant.ServerConfig{
+		serverConfig := constant.ServerConfig{
 			IpAddr:      cfg.String("go.nacos.server"),
 			Port:        uint64(cfg.Int64("go.nacos.port")),
 			ContextPath: "/nacos",
 		}
-		logger.Debug("Nacos服务器配置: " + toJSON(server))
+		logger.Debug("Nacos服务器配置: " + toJSON(serverConfig))
+		clientConfig := constant.ClientConfig{}
+		clientConfig.LogLevel = "error"
+		if conf.Exists("go.nacos.clientConfig.logLevel") {
+			clientConfig.LogLevel = conf.String("go.nacos.clientConfig.logLevel")
+		}
+		clientConfig.UpdateCacheWhenEmpty = true
+		if conf.Exists("go.nacos.clientConfig.updateCacheWhenEmpty") {
+			clientConfig.UpdateCacheWhenEmpty = conf.Bool("go.nacos.client.updateCacheWhenEmpty")
+		}
+		logger.Debug("Nacos客户端配置: " + toJSON(serverConfig))
 		var err error
 		Nacos, err = clients.CreateNamingClient(map[string]interface{}{
-			"serverConfigs": []constant.ServerConfig{server},
+			"serverConfigs": []constant.ServerConfig{serverConfig},
+			"clientConfig":  clientConfig,
 		})
 		if err != nil {
 			logger.Error("Nacos服务连接失败:" + err.Error())
@@ -78,10 +90,15 @@ func registerNacos() {
 			logger.Error("Nacos注册服务失败:" + regerr.Error())
 			return
 		}
+
+		groupName := "DEFAULT_GROUP"
+		if conf.Exists("go.nacos.subscribeGroupName") {
+			groupName = conf.String("go.nacos.subscribeGroupName")
+		}
 		err = Nacos.Subscribe(&vo.SubscribeParam{
 			ServiceName: conf.String("go.application.name"),
 			Clusters:    []string{cluster},
-			GroupName:   "DEFAULT_GROUP",
+			GroupName:   groupName,
 			SubscribeCallback: func(services []model.SubscribeService, err error) {
 				logger.Debug("callback return services:" + toJSON(services))
 			},
