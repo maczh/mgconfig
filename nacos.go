@@ -128,10 +128,15 @@ func GetNacosServiceURL(servicename string) string {
 }
 
 func deRegisterNacos() {
+	groupName := "DEFAULT_GROUP"
+	if conf.Exists("go.nacos.subscribeGroupName") {
+		groupName = conf.String("go.nacos.subscribeGroupName")
+	}
+
 	err := Nacos.Unsubscribe(&vo.SubscribeParam{
 		ServiceName: conf.String("go.application.name"),
 		Clusters:    []string{cluster},
-		GroupName:   "DEFAULT_GROUP",
+		GroupName:   groupName,
 		SubscribeCallback: func(services []model.SubscribeService, err error) {
 			logger.Debug("callback return services:" + toJSON(services))
 		},
