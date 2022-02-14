@@ -89,6 +89,7 @@ func CheckMySql() {
 func GetMysqlConnection() *gorm.DB {
 	if mysqlPool == nil {
 		logger.Error("未初始化MySQL连接池")
+		mysqlInit()
 		return Mysql
 	}
 	conn, err := mysqlPool.Get()
@@ -104,6 +105,7 @@ func GetMysqlConnection() *gorm.DB {
 
 func ReturnMysqlConnection(conn *gorm.DB) {
 	if mysqlPool == nil || conn == nil {
+		mysqlInit()
 		return
 	}
 	err := mysqlPool.Put(conn)

@@ -92,6 +92,7 @@ func MgoCheck() {
 func GetMongoConnection() *mgo.Database {
 	if mgoPool == nil {
 		logger.Error("MongoDB连接池未初始化")
+		mgoInit()
 		return Mgo
 	}
 	conn, err := mgoPool.Get()
@@ -107,6 +108,7 @@ func GetMongoConnection() *mgo.Database {
 
 func ReturnMongoConnection(conn *mgo.Database) {
 	if mgoPool == nil || conn == nil {
+		mgoInit()
 		return
 	}
 	err := mgoPool.Put(conn)

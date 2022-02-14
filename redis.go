@@ -90,6 +90,7 @@ func RedisCheck() {
 func GetRedisConnection() *redis.Client {
 	if redisPool == nil {
 		logger.Error("未初始化Redis连接池")
+		redisInit()
 		return Redis
 	}
 	conn, err := redisPool.Get()
@@ -105,6 +106,7 @@ func GetRedisConnection() *redis.Client {
 
 func ReturnRedisConnection(conn *redis.Client) {
 	if redisPool == nil || conn == nil {
+		redisInit()
 		return
 	}
 	err := redisPool.Put(conn)
