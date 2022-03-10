@@ -45,11 +45,6 @@ func registerNacos() {
 			Port:        uint64(cfg.Int64("go.nacos.port")),
 			ContextPath: "/nacos",
 		}
-		metadata := make(map[string]string)
-		if serverConfig.Port == 0 && cfg.Int64("go.nacos.port_ssl") > 0 {
-			serverConfig.Port = uint64(cfg.Int64("go.nacos.port_ssl"))
-			metadata["ssl"] = "true"
-		}
 		logger.Debug("Nacos服务器配置: " + toJSON(serverConfig))
 		clientConfig := constant.ClientConfig{}
 		clientConfig.LogLevel = "error"
@@ -76,9 +71,15 @@ func registerNacos() {
 			ip = conf.String("go.application.ip")
 		}
 		cluster = cfg.String("go.nacos.clusterName")
+		port := uint64(conf.Int("go.application.port"))
+		metadata := make(map[string]string)
+		if port == 0 && cfg.Int64("go.application.port_ssl") > 0 {
+			port = uint64(cfg.Int64("go.application.port_ssl"))
+			metadata["ssl"] = "true"
+		}
 		success, regerr := Nacos.RegisterInstance(vo.RegisterInstanceParam{
 			Ip:          ip,
-			Port:        uint64(conf.Int("go.application.port")),
+			Port:        port,
 			ServiceName: conf.String("go.application.name"),
 			Weight:      1,
 			ClusterName: cluster,
