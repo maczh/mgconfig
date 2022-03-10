@@ -73,8 +73,8 @@ func registerNacos() {
 		cluster = cfg.String("go.nacos.clusterName")
 		port := uint64(conf.Int("go.application.port"))
 		metadata := make(map[string]string)
-		if port == 0 && cfg.Int64("go.application.port_ssl") > 0 {
-			port = uint64(cfg.Int64("go.application.port_ssl"))
+		if port == 0 || conf.String("go.application.port_ssl") != "" {
+			port = uint64(conf.Int64("go.application.port_ssl"))
 			metadata["ssl"] = "true"
 		}
 		success, regerr := Nacos.RegisterInstance(vo.RegisterInstanceParam{
