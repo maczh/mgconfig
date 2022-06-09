@@ -95,7 +95,7 @@ go:
 go:
   data:
     mongodb:
-      uri: mongodb://user:pwd@xxx.xxx.xxx.xxx:port/dbname
+      uri: mongodb://user:pwd@xxx.xxx.xxx.xxx:port/dbname #当使用复制集时 mongodb://user:pwd@192.168..3.5:27017,192.168.3.6:27017/dbname?replicaSet=replsetname
       db: dbname
       debug: true   #打开调试模式
     mongo_pool:     #连接池设置,若无此项则使用单一长连接
