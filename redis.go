@@ -1,6 +1,7 @@
 package mgconfig
 
 import (
+	"errors"
 	"github.com/go-redis/redis"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
@@ -15,7 +16,12 @@ var Redis *redis.Client
 func redisInit() {
 	if Redis == nil {
 		redisConfigUrl := getConfigUrl(conf.String("go.config.prefix.redis"))
-		resp, _ := grequests.Get(redisConfigUrl, nil)
+		logger.Debug("正在获取Redis配置: " + redisConfigUrl)
+		resp, err := grequests.Get(redisConfigUrl, nil)
+		if err != nil {
+			logger.Error("Redis配置下载失败! " + err.Error())
+			return
+		}
 		cfg := koanf.New(".")
 		cfg.Load(rawbytes.Provider([]byte(resp.String())), yaml.Parser())
 		ro := redis.Options{
@@ -76,8 +82,12 @@ func RedisCheck() {
 	}
 }
 
-func GetRedisConnection() *redis.Client {
-	return Redis
+func GetRedisConnection() (*redis.Client, error) {
+	RedisCheck()
+	if Redis == nil {
+		return nil, errors.New("redis connection failed")
+	}
+	return Redis, nil
 }
 
 func ReturnRedisConnection(conn *redis.Client) {

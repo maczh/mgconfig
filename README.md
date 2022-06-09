@@ -83,6 +83,7 @@ go:
 go:
   data:
     mysql: user:pwd@tcp(xxx.xxx.xxx.xxx:3306)/dbname?charset=utf8&parseTime=True&loc=Local
+    mysql_debug: true   #打开调试模式
     mysql_pool:     #连接池设置,若无此项则使用单一长连接
       max: 20     #最大连接数
       min: 5      #最小连接数
@@ -96,11 +97,9 @@ go:
     mongodb:
       uri: mongodb://user:pwd@xxx.xxx.xxx.xxx:port/dbname
       db: dbname
+      debug: true   #打开调试模式
     mongo_pool:     #连接池设置,若无此项则使用单一长连接
       max: 20     #最大连接数
-      min: 5      #最小连接数
-      idle: 10    #空闲连接数
-      timeout: 300  #空闲超时少数，超时后自动断开空闲连接  
 ```
 + redis配置范例 redis-go-test.yml
 ```yaml

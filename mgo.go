@@ -1,118 +1,80 @@
 package mgconfig
 
 import (
+	"errors"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/levigross/grequests"
-	"github.com/silenceper/pool"
 	"gopkg.in/mgo.v2"
-	"time"
+	"log"
+	"os"
 )
 
 var Mgo *mgo.Database
-var mgoPool pool.Pool
+var mongo *mgo.Session
+var mgodb string
 
 func mgoInit() {
 	if Mgo == nil {
 		mongodbConfigUrl := getConfigUrl(conf.String("go.config.prefix.mongodb"))
-		resp, _ := grequests.Get(mongodbConfigUrl, nil)
+		logger.Debug("正在获取MongoDB配置: " + mongodbConfigUrl)
+		resp, err := grequests.Get(mongodbConfigUrl, nil)
+		if err != nil {
+			logger.Error("MongoDB配置下载失败! " + err.Error())
+			return
+		}
 		cfg := koanf.New(".")
 		cfg.Load(rawbytes.Provider([]byte(resp.String())), yaml.Parser())
-		//mgo.SetDebug(true)
-		//var mgoLogger *log.Logger
-		//mgoLogger = log.New(os.Stderr, "", log.LstdFlags)
-		//mgo.SetLogger(mgoLogger)
-		mongo, err := mgo.Dial(cfg.String("go.data.mongodb.uri"))
+		if cfg.Bool("go.data.mongodb.debug") {
+			mgo.SetDebug(true)
+			var mgoLogger *log.Logger
+			mgoLogger = log.New(os.Stderr, "", log.LstdFlags)
+			mgo.SetLogger(mgoLogger)
+		}
+		mongo, err = mgo.Dial(cfg.String("go.data.mongodb.uri"))
 		if err != nil {
 			logger.Error("MongoDB连接错误:" + err.Error())
-		} else {
-			Mgo = mongo.DB(cfg.String("go.data.mongodb.db"))
+			return
 		}
-		if cfg.Int("go.data.mongo_pool.max") > 1 && (mgoPool == nil || mgoPool.Len() == 0) {
-			factory := func() (interface{}, error) {
-				session, err := mgo.Dial(cfg.String("go.data.mongodb.uri"))
-				return session.DB(cfg.String("go.data.mongodb.db")), err
-			}
-			close := func(v interface{}) error { v.(*mgo.Database).Session.Close(); return nil }
-			ping := func(v interface{}) error { return v.(*mgo.Database).Session.Ping() }
-			min := cfg.Int("go.data.mongo_pool.min")
-			if min == 0 {
-				min = 2
-			}
+		if cfg.Int("go.data.mongo_pool.max") > 1 {
 			max := cfg.Int("go.data.mongo_pool.max")
-			if max < min {
+			if max < 10 {
 				max = 10
 			}
-			idle := cfg.Int("go.data.mongo_pool.idle")
-			if idle == 0 || idle > max {
-				idle = max / 2
-			}
-			idleTimeout := cfg.Int("go.data.mongo_pool.timeout")
-			if idleTimeout == 0 {
-				idleTimeout = 60
-			}
-			poolConfig := &pool.Config{
-				InitialCap:  min,
-				MaxCap:      max,
-				MaxIdle:     idle,
-				Factory:     factory,
-				Close:       close,
-				Ping:        ping,
-				IdleTimeout: time.Duration(idleTimeout) * time.Second,
-			}
-			var err error
-			mgoPool, err = pool.NewChannelPool(poolConfig)
-			if err != nil {
-				logger.Error("MongoDB连接池初始化错误")
-			}
+			mongo.SetPoolLimit(max)
+			mongo.SetMode(mgo.Monotonic, true)
 		}
+		mgodb = cfg.String("go.data.mongodb.db")
+		Mgo = mongo.Copy().DB(mgodb)
 	}
 }
 
 func mgoClose() {
-	Mgo.Session.Close()
+	mongo.Close()
 	Mgo = nil
-	if mgoPool != nil && mgoPool.Len() > 0 {
-		mgoPool.Release()
-	}
+	mongo = nil
 }
 
 func MgoCheck() {
-	if Mgo == nil {
+	if Mgo == nil || mongo == nil {
 		mgoInit()
 		return
 	}
-	if Mgo.Session.Ping() != nil {
+	if mongo.Ping() != nil {
 		mgoClose()
 		mgoInit()
 	}
 }
 
-func GetMongoConnection() *mgo.Database {
-	if mgoPool == nil {
-		logger.Error("MongoDB连接池未初始化")
-		mgoInit()
-		return Mgo
+func GetMongoConnection() (*mgo.Database, error) {
+	MgoCheck()
+	if mongo == nil {
+		return nil, errors.New("MongoDB connection failed")
 	}
-	conn, err := mgoPool.Get()
-	if err != nil {
-		logger.Error("MongoDB连接池错误:" + err.Error())
-		return nil
-	}
-	if conn == nil {
-		return nil
-	}
-	return conn.(*mgo.Database)
+	return mongo.Copy().DB(mgodb), nil
 }
 
 func ReturnMongoConnection(conn *mgo.Database) {
-	if mgoPool == nil || conn == nil {
-		mgoInit()
-		return
-	}
-	err := mgoPool.Put(conn)
-	if err != nil {
-		logger.Error("归还MongoDB连接给连接池错误:" + err.Error())
-	}
+	conn.Session.Close()
 }
