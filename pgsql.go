@@ -8,7 +8,6 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/levigross/grequests"
-	"strings"
 )
 
 var Postgres *gorm.DB
@@ -27,11 +26,6 @@ func pgsqlInit() {
 			cfg.String("go.data.postgres.db"))
 		Postgres, _ = gorm.Open("postgres", dsn)
 		Postgres.LogMode(true)
-		if strings.Contains(conf.String("go.config.used"), "redis") {
-			Cacheable = true
-		} else {
-			Cacheable = false
-		}
 	}
 }
 

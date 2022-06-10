@@ -11,12 +11,12 @@ import (
 	"os"
 )
 
-var Mgo *mgo.Database
+var conn *mgo.Database
 var mongo *mgo.Session
 var mgodb string
 
 func mgoInit() {
-	if Mgo == nil {
+	if conn == nil {
 		mongodbConfigUrl := getConfigUrl(conf.String("go.config.prefix.mongodb"))
 		logger.Debug("正在获取MongoDB配置: " + mongodbConfigUrl)
 		resp, err := grequests.Get(mongodbConfigUrl, nil)
@@ -46,18 +46,18 @@ func mgoInit() {
 			mongo.SetMode(mgo.Monotonic, true)
 		}
 		mgodb = cfg.String("go.data.mongodb.db")
-		Mgo = mongo.Copy().DB(mgodb)
+		conn = mongo.Copy().DB(mgodb)
 	}
 }
 
 func mgoClose() {
 	mongo.Close()
-	Mgo = nil
+	conn = nil
 	mongo = nil
 }
 
 func MgoCheck() {
-	if Mgo == nil || mongo == nil {
+	if conn == nil || mongo == nil {
 		mgoInit()
 		return
 	}

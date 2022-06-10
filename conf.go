@@ -33,6 +33,10 @@ func InitConfig(cf string) {
 		logger.Info("正在连接MySQL")
 		mysqlInit()
 	}
+	if strings.Contains(configs, "MySQL") {
+		logger.Info("正在连接MySQL")
+		mySqlInit()
+	}
 	if strings.Contains(configs, "pgsql") {
 		logger.Info("正在连接PostgreSQL")
 		pgsqlInit()
@@ -49,10 +53,6 @@ func InitConfig(cf string) {
 		logger.Info("正在连接Redis")
 		redisInit()
 	}
-	//	if strings.Contains(configs, "ssdb") {
-	//		logger.Info("正在连接SSDB")
-	//		ssdbInit()
-	//	}
 	if strings.Contains(configs, "nacos") {
 		logger.Info("正在注册到Nacos")
 		registerNacos()
@@ -69,10 +69,6 @@ func InitConfig(cf string) {
 		logger.Info("正在连接Elasticsearch")
 		elasticInit()
 	}
-	//	if strings.Contains(configs, "opensearch") {
-	//		logger.Info("正在连接OpenSearch")
-	//		openSearchInit()
-	//	}
 	if strings.Contains(configs, "hbase") {
 		logger.Info("正在连接HBase")
 		hbaseInit()
@@ -130,6 +126,10 @@ func SafeExit() {
 		logger.Info("正在关闭MySQL连接")
 		mysqlClose()
 	}
+	if strings.Contains(configs, "MySQL") {
+		logger.Info("正在关闭MySQL连接")
+		mySqlClose()
+	}
 	if strings.Contains(configs, "pgsql") {
 		logger.Info("正在关闭PostgreSQL连接")
 		pgsqlClose()
@@ -146,10 +146,6 @@ func SafeExit() {
 		logger.Info("正在关闭Redis连接")
 		redisClose()
 	}
-	//	if strings.Contains(configs, "ssdb") {
-	//		logger.Info("正在关闭SSDB连接")
-	//		ssdbClose()
-	//	}
 	if strings.Contains(configs, "nacos") {
 		logger.Info("正在注销Nacos")
 		deRegisterNacos()
@@ -166,10 +162,6 @@ func SafeExit() {
 		logger.Info("正在关闭Elasticsearch连接")
 		elasticClose()
 	}
-	//	if strings.Contains(configs, "opensearch") {
-	//		logger.Info("正在关闭OpenSearch连接")
-	//		openSearchClose()
-	//	}
 	if strings.Contains(configs, "hbase") {
 		logger.Info("正在关闭HBase连接")
 		hbaseClose()
@@ -197,6 +189,10 @@ func checkAll() {
 		logger.Debug("正在检查MySQL")
 		mysqlCheck()
 	}
+	if strings.Contains(configs, "MySQL") {
+		logger.Debug("正在检查MySQL")
+		mySqlCheck()
+	}
 	if strings.Contains(configs, "pgsql") {
 		logger.Debug("正在检查PostgreSQL")
 		pgsqlCheck()
@@ -221,10 +217,6 @@ func checkAll() {
 		logger.Debug("正在检查Redis")
 		RedisCheck()
 	}
-	//	if strings.Contains(configs, "ssdb") {
-	//		logger.Debug("正在检查SSDB")
-	//		ssdbCheck()
-	//	}
 	if strings.Contains(configs, "couchdb") {
 		logger.Debug("正在检查Couchbase")
 		couchbaseCheck()

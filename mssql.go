@@ -8,7 +8,6 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/levigross/grequests"
-	"strings"
 )
 
 var Mssql *gorm.DB
@@ -27,11 +26,6 @@ func mssqlInit() {
 			cfg.String("go.data.postgres.db"))
 		Mssql, _ = gorm.Open("mssql", dsn)
 		Mssql.LogMode(true)
-		if strings.Contains(conf.String("go.config.used"), "redis") {
-			Cacheable = true
-		} else {
-			Cacheable = false
-		}
 	}
 }
 

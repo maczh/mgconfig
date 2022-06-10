@@ -20,6 +20,7 @@ import (
 var Nacos naming_client.INamingClient
 var cluster string
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
+var lan bool
 
 func toJSON(o interface{}) string {
 	j, err := json.Marshal(o)
@@ -40,12 +41,22 @@ func registerNacos() {
 		resp, _ := grequests.Get(nacosConfigUrl, nil)
 		cfg := koanf.New(".")
 		cfg.Load(rawbytes.Provider([]byte(resp.String())), yaml.Parser())
-		serverConfig := constant.ServerConfig{
-			IpAddr:      cfg.String("go.nacos.server"),
-			Port:        uint64(cfg.Int64("go.nacos.port")),
-			ContextPath: "/nacos",
+		lan = cfg.Bool("go.nacos.lan")
+		serverConfigs := []constant.ServerConfig{}
+		ipstr := cfg.String("go.nacos.server")
+		portstr := cfg.String("go.nacos.port")
+		ips := strings.Split(ipstr, ",")
+		ports := strings.Split(portstr, ",")
+		for i, ip := range ips {
+			port, _ := strconv.Atoi(ports[i])
+			serverConfig := constant.ServerConfig{
+				IpAddr:      ip,
+				Port:        uint64(port),
+				ContextPath: "/nacos",
+			}
+			serverConfigs = append(serverConfigs, serverConfig)
 		}
-		logger.Debug("Nacos服务器配置: " + toJSON(serverConfig))
+		logger.Debug("Nacos服务器配置: " + toJSON(serverConfigs))
 		clientConfig := constant.ClientConfig{}
 		clientConfig.LogLevel = "error"
 		if conf.Exists("go.nacos.clientConfig.logLevel") {
@@ -58,15 +69,15 @@ func registerNacos() {
 		logger.Debug("Nacos客户端配置: " + toJSON(clientConfig))
 		var err error
 		Nacos, err = clients.CreateNamingClient(map[string]interface{}{
-			"serverConfigs": []constant.ServerConfig{serverConfig},
+			"serverConfigs": serverConfigs,
 			"clientConfig":  clientConfig,
 		})
 		if err != nil {
 			logger.Error("Nacos服务连接失败:" + err.Error())
 			return
 		}
-		ips, _ := localIPv4s()
-		ip := ips[0]
+		localip, _ := localIPv4s(lan)
+		ip := localip[0]
 		if conf.Exists("go.application.ip") {
 			ip = conf.String("go.application.ip")
 		}
@@ -146,7 +157,7 @@ func deRegisterNacos() {
 	if err != nil {
 		logger.Error("Nacos服务订阅失败:" + err.Error())
 	}
-	ips, _ := localIPv4s()
+	ips, _ := localIPv4s(lan)
 	ip := ips[0]
 	if conf.Exists("go.application.ip") {
 		ip = conf.String("go.application.ip")
@@ -165,7 +176,7 @@ func deRegisterNacos() {
 
 }
 
-func localIPv4s() ([]string, error) {
+func localIPv4s(lan bool) ([]string, error) {
 	var ips []string
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -174,7 +185,12 @@ func localIPv4s() ([]string, error) {
 
 	for _, a := range addrs {
 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
-			ips = append(ips, ipnet.IP.String())
+			if lan && ipnet.IP.IsPrivate() {
+				ips = append(ips, ipnet.IP.String())
+			}
+			if !lan && !ipnet.IP.IsPrivate() {
+				ips = append(ips, ipnet.IP.String())
+			}
 		}
 	}
 

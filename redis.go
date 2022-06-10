@@ -11,10 +11,10 @@ import (
 	"time"
 )
 
-var Redis *redis.Client
+var redisClient *redis.Client
 
 func redisInit() {
-	if Redis == nil {
+	if redisClient == nil {
 		redisConfigUrl := getConfigUrl(conf.String("go.config.prefix.redis"))
 		logger.Debug("正在获取Redis配置: " + redisConfigUrl)
 		resp, err := grequests.Get(redisConfigUrl, nil)
@@ -43,7 +43,7 @@ func redisInit() {
 			}
 			ro.MinIdleConns = min
 			max := cfg.Int("go.data.redis_pool.max")
-			if max < min {
+			if max < 10 {
 				max = 10
 			}
 			ro.PoolSize = max
@@ -58,24 +58,24 @@ func redisInit() {
 			}
 			ro.DialTimeout = time.Duration(connectTimeout) * time.Second
 		}
-		Redis = redis.NewClient(&ro)
-		if err := Redis.Ping().Err(); err != nil {
+		redisClient = redis.NewClient(&ro)
+		if err := redisClient.Ping().Err(); err != nil {
 			logger.Error("Redis连接失败:" + err.Error())
 		}
 	}
 }
 
 func redisClose() {
-	Redis.Close()
-	Redis = nil
+	redisClient.Close()
+	redisClient = nil
 }
 
 func RedisCheck() {
-	if Redis == nil {
+	if redisClient == nil {
 		redisInit()
 		return
 	}
-	if err := Redis.Ping().Err(); err != nil {
+	if err := redisClient.Ping().Err(); err != nil {
 		logger.Error("Redis连接故障:" + err.Error())
 		redisClose()
 		redisInit()
@@ -84,11 +84,8 @@ func RedisCheck() {
 
 func GetRedisConnection() (*redis.Client, error) {
 	RedisCheck()
-	if Redis == nil {
+	if redisClient == nil {
 		return nil, errors.New("redis connection failed")
 	}
-	return Redis, nil
-}
-
-func ReturnRedisConnection(conn *redis.Client) {
+	return redisClient, nil
 }

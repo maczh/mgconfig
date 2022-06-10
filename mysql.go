@@ -29,25 +29,29 @@ func mysqlInit() {
 		}
 		Mysql.LogMode(true)
 		if cfg.Int("go.data.mysql_pool.max") > 1 {
-			min := cfg.Int("go.data.mysql_pool.min")
-			if min == 0 {
-				min = 2
+			if cfg.Int("go.data.mysql_pool.max") > 1 {
+				sqldb := Mysql.DB()
+				max := cfg.Int("go.data.mysql_pool.max")
+				if max < 10 {
+					max = 10
+				}
+				sqldb.SetMaxOpenConns(max)
+				idle := cfg.Int("go.data.mysql_pool.total")
+				if idle == 0 || idle < max {
+					idle = 5 * max
+				}
+				sqldb.SetMaxIdleConns(idle)
+				idleTimeout := cfg.Int("go.data.mysql_pool.timeout")
+				if idleTimeout == 0 {
+					idleTimeout = 60
+				}
+				sqldb.SetConnMaxIdleTime(time.Duration(idleTimeout) * time.Second)
+				lifetime := cfg.Int("go.data.mysql_pool.life")
+				if lifetime == 0 {
+					lifetime = 60
+				}
+				sqldb.SetConnMaxLifetime(time.Duration(lifetime) * time.Minute)
 			}
-			Mysql.DB().SetMaxIdleConns(min)
-			max := cfg.Int("go.data.mysql_pool.max")
-			if max < 10 {
-				max = 10
-			}
-			Mysql.DB().SetMaxOpenConns(max)
-			//idle := cfg.Int("go.data.mysql_pool.idle")
-			//if idle == 0 || idle > max {
-			//	idle = max / 2
-			//}
-			idleTimeout := cfg.Int("go.data.mysql_pool.timeout")
-			if idleTimeout == 0 {
-				idleTimeout = 60
-			}
-			Mysql.DB().SetConnMaxIdleTime(time.Duration(idleTimeout) * time.Second)
 		}
 	}
 }

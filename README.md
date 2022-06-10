@@ -17,13 +17,12 @@
 
 ## 支持的数据库
 
-+ MySQL （Gorm v1)
++ MySQL （Gorm v1/v2)
 + PostgreSQL (Gorm v1)
 + MS SQL Server (Gorm v1)
 + MongoDB (Mgo v2)
 + Redis (go-redis)
 + CouchBase
-+ SSDB
 + HBase (gohbase)
 + Hive (gohive)
 + InfluxDB
@@ -35,7 +34,6 @@
 ## 支持的搜索引擎
 
 + ElasticSearch (olivere/elastic)
-+ 阿里云 OpenSearch
 
 ## 安装
 ```shell script
@@ -59,38 +57,36 @@ go:
     server_type: nacos                  #配置服务器类型 nacos,consul,springconfig
     env: test                           #配置环境 一般常用test/prod/dev等，跟相应配置文件匹配
     type: .yml                          #文件格式，目前仅支持yaml
-    mid: -go-                           #配置文件中间名
-    used: nacos,mysql,mongodb,redis     #当前应用启用的配置
+    mid: "-"                            #配置文件中间名
+    used: nacos,mysql,mongodb,redis     #当前应用启用的配置,MySQL代表使用GORM v2版本的MySQL，小写mysql代表GORM v1版本
     prefix:                             #配置文件名前缀定义
       mysql: mysql                      #mysql对应的配置文件名前缀，如当前配置中对应的配置文件名为 mysql-go-test.yml
       mongodb: mongodb
       redis: redis
-      ssdb: ssdb
       rabbitmq: rabbitmq
       nacos: nacos
       pgsql: pgsql
       mssql: mssql
       consul: consul
       elasticsearch: elasticsearch
-      opensearch: opensearch
       hbase: hbase
       hive: hive
       couchdb: couchdb
       influxdb: influxdb
 ```
-+ mysql配置范例 mysql-go-test.yml
++ mysql配置范例 mysql-test.yml
 ```yaml
 go:
   data:
     mysql: user:pwd@tcp(xxx.xxx.xxx.xxx:3306)/dbname?charset=utf8&parseTime=True&loc=Local
     mysql_debug: true   #打开调试模式
     mysql_pool:     #连接池设置,若无此项则使用单一长连接
-      max: 20     #最大连接数
-      min: 5      #最小连接数
-      idle: 10    #空闲连接数
-      timeout: 300  #空闲超时少数，超时后自动断开空闲连接  
+      max: 200      #实际最大连接数
+      total: 1000   #最大并发数,不填默认为最大连接数5倍
+      timeout: 30   #空闲连接超时，秒，默认60秒
+      life: 5       #连接生命周期，分钟，默认60分钟
 ```
-+ mongodb配置范例 mongodb-go-test.yml
++ mongodb配置范例 mongodb-test.yml
 ```yaml
 go:
   data:
@@ -99,42 +95,34 @@ go:
       db: dbname
       debug: true   #打开调试模式
     mongo_pool:     #连接池设置,若无此项则使用单一长连接
-      max: 20     #最大连接数
+      max: 20       #最大连接数
 ```
-+ redis配置范例 redis-go-test.yml
++ redis配置范例 redis-test.yml
 ```yaml
 go:
   data:
     redis:
-      database: 1
       host: xxx.xxx.xxx.xxx
-      password: pwd
-      pool:
-        max-active: 10
-        max-idle: 10
-        max-wait: -1
-        min-idle: 1
       port: 6379
+      password: password
+      database: 1
       timeout: 1000
+    redis_pool:
+      min: 3        #最小空闲连接数,默认2
+      max: 200      #连接池大小，最小默认10
+      idle: 10      #空闲超时，分钟,默认5分钟
+      timeout: 300  #连接超时，秒，默认60秒
 ```
-+ ssdb配置范例 ssdb-go-test.yml
-```yaml
-go:
-  data:
-    ssdb:
-      host: xxx.xxx.xxx.xxx
-      password: pwd
-      port: 8888
-      timeout: 3000
-```
-+ nacos配置范例 nacos-go-test.yml
+
++ nacos配置范例 nacos-test.yml
 ```yaml
 go:
   nacos:
+    server: xxx.xxx.xxx,xxx.xxx.xxx,xxx.xxx.xxx   #nacos集群，多台IP
+    port: 8848,8848,8848   #nacos集群，对应IP多个端口
     clusterName: DEFAULT
-    port: 8848
-    server: xxx.xxx.xxx.xxx
     weight: 1
+    lan: true   #以内网地址注册，否则以公网地址注册
 ```
 + rabbitmq配置范例 rabbitmq-go-test.yml
 ```yaml
@@ -162,31 +150,30 @@ go:
     mgconfig.SafeExit()
 ```
 
-### 在应用中使用MySQL单连接范例
+### 在应用中使用MySQL单连接范例(Gorm v2),连接池
 
 ```go
 func GetUserById(id uint) (*pojo.User) {
-	user := new(pojo.User)
-	mgconfig.Mysql.Table("user_info").Where("id = ?",id).First(&user)
-	logs.Debug("查詢結果:",user)
-	return user
-}
-```
-
-### 在应用中使用MySQL连接池范例
-
-```go
-func GetUserById(id uint) (*pojo.User) {
-	user := new(pojo.User)
+    user := new(pojo.User)
     //从连接池中获取连接
-    mysql := mgconfig.GetMysqlConnection()
+    mysql,err := mgconf.GetMySQLConnection()
+    if err != nil {
+    logs.Error("MySQL connection error: {}",err.Error())
+    return nil
+    }
     mysql.Table("user_info").Where("id = ?",id).First(&user)
-    logs.Debug("查詢結果:",user)
-    //归还连接到连接池
-    mgconfig.ReturnMysqlConnection(mysql)
-    return user
+    logs.Debug("查詢結果:{}",user)
+    //归还连接到连接池(无需显式归还)
+     return user
 }
 ```
+
+### v1.0.9版本更新说明
++ mysql/MySQL改用database/sql自带的连接池，且必须使用连接池配置，不需要归还连接，但必须使用获取连接函数，要处理获取连接返回的error
++ redis改用go-redis自带连接池，同样必须采用获取连接函数，且需要处理error，也无需归还连接
++ mongodb改用mgo.v2自带连接池，必须使用获取连接函数，且需要处理error，***需要归还连接***，支持replicaSet，自动读写分离
++ nacos支持nacos集群与单机，且增加了采用内网地址/公网地址注册的配置
++ 以上4项更新，配置文件格式也有修改，详见上面配置说明
 
 ### 修改默认数据库检查时间，默认为5分钟一次
 
