@@ -195,13 +195,17 @@ func localIPv4s(lan bool) ([]string, error) {
 
 	for _, a := range addrs {
 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
-			if lan && ipnet.IP.IsPrivate() {
-				ips = append(ips, ipnet.IP.String())
+			if ipnet.IP.IsPrivate() {
 				ipLans = append(ipLans, ipnet.IP.String())
+				if lan {
+					ips = append(ips, ipnet.IP.String())
+				}
 			}
-			if !lan && !ipnet.IP.IsPrivate() {
-				ips = append(ips, ipnet.IP.String())
+			if !ipnet.IP.IsPrivate() {
 				ipWans = append(ipWans, ipnet.IP.String())
+				if !lan {
+					ips = append(ips, ipnet.IP.String())
+				}
 			}
 		}
 	}
