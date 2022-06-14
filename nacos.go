@@ -2,6 +2,8 @@ package mgconfig
 
 import (
 	"net"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -41,6 +43,13 @@ func registerNacos() {
 		resp, _ := grequests.Get(nacosConfigUrl, nil)
 		cfg := koanf.New(".")
 		cfg.Load(rawbytes.Provider([]byte(resp.String())), yaml.Parser())
+		var err error
+		path, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+		path += "cache/naming"
+		_, err = os.Stat(path)
+		if err != nil && os.IsNotExist(err) {
+			os.MkdirAll(path, 0644)
+		}
 		lan = cfg.Bool("go.nacos.lan")
 		serverConfigs := []constant.ServerConfig{}
 		ipstr := cfg.String("go.nacos.server")
@@ -67,7 +76,6 @@ func registerNacos() {
 			clientConfig.UpdateCacheWhenEmpty = conf.Bool("go.nacos.client.updateCacheWhenEmpty")
 		}
 		logger.Debug("Nacos客户端配置: " + toJSON(clientConfig))
-		var err error
 		Nacos, err = clients.CreateNamingClient(map[string]interface{}{
 			"serverConfigs": serverConfigs,
 			"clientConfig":  clientConfig,
@@ -177,7 +185,7 @@ func deRegisterNacos() {
 }
 
 func localIPv4s(lan bool) ([]string, error) {
-	var ips []string
+	var ips, ipLans, ipWans []string
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return ips, err
@@ -187,12 +195,20 @@ func localIPv4s(lan bool) ([]string, error) {
 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
 			if lan && ipnet.IP.IsPrivate() {
 				ips = append(ips, ipnet.IP.String())
+				ipLans = append(ipLans, ipnet.IP.String())
 			}
 			if !lan && !ipnet.IP.IsPrivate() {
 				ips = append(ips, ipnet.IP.String())
+				ipWans = append(ipWans, ipnet.IP.String())
 			}
 		}
 	}
-
+	if len(ips) == 0 {
+		if lan {
+			ips = append(ips, ipWans...)
+		} else {
+			ips = append(ips, ipLans...)
+		}
+	}
 	return ips, nil
 }
