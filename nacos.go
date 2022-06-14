@@ -45,7 +45,7 @@ func registerNacos() {
 		cfg.Load(rawbytes.Provider([]byte(resp.String())), yaml.Parser())
 		var err error
 		path, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-		path += "cache/naming"
+		path += "/cache/naming"
 		_, err = os.Stat(path)
 		if err != nil && os.IsNotExist(err) {
 			os.MkdirAll(path, 0644)
