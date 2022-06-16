@@ -73,10 +73,10 @@ func InitConfig(cf string) {
 		logger.Info("正在连接HBase")
 		hbaseInit()
 	}
-	if strings.Contains(configs, "hive") {
-		logger.Info("正在连接Hive")
-		hiveInit()
-	}
+	//if strings.Contains(configs, "hive") {
+	//	logger.Info("正在连接Hive")
+	//	hiveInit()
+	//}
 	if strings.Contains(configs, "couchdb") {
 		logger.Info("正在连接Couchbase")
 		couchbaseInit()
@@ -166,10 +166,10 @@ func SafeExit() {
 		logger.Info("正在关闭HBase连接")
 		hbaseClose()
 	}
-	if strings.Contains(configs, "hive") {
-		logger.Info("正在关闭Hive连接")
-		hiveClose()
-	}
+	//if strings.Contains(configs, "hive") {
+	//	logger.Info("正在关闭Hive连接")
+	//	hiveClose()
+	//}
 	if strings.Contains(configs, "couchdb") {
 		logger.Info("正在关闭Couchbase连接")
 		couchbaseClose()

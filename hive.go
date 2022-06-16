@@ -1,5 +1,6 @@
 package mgconfig
 
+/**
 import (
 	"github.com/beltran/gohive"
 	"github.com/knadh/koanf"
@@ -57,3 +58,6 @@ func hiveClose() {
 		Hive = nil
 	}
 }
+
+
+*/

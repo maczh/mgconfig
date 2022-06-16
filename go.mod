@@ -3,7 +3,6 @@ module github.com/maczh/mgconfig
 go 1.17
 
 require (
-	github.com/beltran/gohive v1.5.2
 	github.com/couchbase/gocb/v2 v2.3.3
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/hashicorp/consul/api v1.11.0
@@ -24,11 +23,8 @@ require (
 
 require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.18 // indirect
-	github.com/apache/thrift v0.14.1 // indirect
 	github.com/araddon/gou v0.0.0-20211019181548-e7d08105776c // indirect
 	github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da // indirect
-	github.com/beltran/gosasl v0.0.0-20200715011608-d5475aebb293 // indirect
-	github.com/beltran/gssapi v0.0.0-20200324152954-d86554db4bab // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bitly/go-hostpool v0.1.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
