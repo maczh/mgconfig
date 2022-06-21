@@ -26,6 +26,7 @@ func registerConsul() {
 		config.Address = cfg.String("go.consul.server") + ":" + cfg.String("go.consul.port")
 		config.Datacenter = cfg.String("go.consul.datacenter")
 		lan = cfg.Bool("go.consul.lan")
+		lanNetwork = cfg.String("go.consul.lanNet")
 		// Get a new Consul
 		Consul, err = api.NewClient(config)
 		if err != nil {
@@ -40,7 +41,7 @@ func registerConsul() {
 		DeregisterCriticalServiceAfter: "30s",
 	}
 
-	ips, _ := localIPv4s(lan)
+	ips, _ := localIPv4s(lan, lanNetwork)
 	ip := ips[0]
 	if conf.Exists("go.application.ip") {
 		ip = conf.String("go.application.ip")
@@ -121,7 +122,7 @@ func deRegisterConsul() {
 	if Consul == nil {
 		return
 	}
-	ips, _ := localIPv4s(lan)
+	ips, _ := localIPv4s(lan, lanNetwork)
 	ip := ips[0]
 	if conf.Exists("go.application.ip") {
 		ip = conf.String("go.application.ip")

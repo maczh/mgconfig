@@ -23,6 +23,7 @@ var Nacos naming_client.INamingClient
 var cluster string
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 var lan bool
+var lanNetwork string
 
 func toJSON(o interface{}) string {
 	j, err := json.Marshal(o)
@@ -53,6 +54,7 @@ func registerNacos() {
 			os.Mkdir(path, 0777)
 		}
 		lan = cfg.Bool("go.nacos.lan")
+		lanNetwork = cfg.String("go.nacos.lanNet")
 		serverConfigs := []constant.ServerConfig{}
 		ipstr := cfg.String("go.nacos.server")
 		portstr := cfg.String("go.nacos.port")
@@ -86,7 +88,7 @@ func registerNacos() {
 			logger.Error("Nacos服务连接失败:" + err.Error())
 			return
 		}
-		localip, _ := localIPv4s(lan)
+		localip, _ := localIPv4s(lan, lanNetwork)
 		ip := localip[0]
 		if conf.Exists("go.application.ip") {
 			ip = conf.String("go.application.ip")
@@ -167,7 +169,7 @@ func deRegisterNacos() {
 	if err != nil {
 		logger.Error("Nacos服务订阅失败:" + err.Error())
 	}
-	ips, _ := localIPv4s(lan)
+	ips, _ := localIPv4s(lan, lanNetwork)
 	ip := ips[0]
 	if conf.Exists("go.application.ip") {
 		ip = conf.String("go.application.ip")
@@ -186,7 +188,7 @@ func deRegisterNacos() {
 
 }
 
-func localIPv4s(lan bool) ([]string, error) {
+func localIPv4s(lan bool, lanNetwork string) ([]string, error) {
 	var ips, ipLans, ipWans []string
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -197,7 +199,7 @@ func localIPv4s(lan bool) ([]string, error) {
 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
 			if ipnet.IP.IsPrivate() {
 				ipLans = append(ipLans, ipnet.IP.String())
-				if lan {
+				if lan && strings.HasPrefix(ipnet.IP.String(), lanNetwork) {
 					ips = append(ips, ipnet.IP.String())
 				}
 			}
