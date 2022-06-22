@@ -22,9 +22,19 @@ func influxdbInit() {
 		token := cfg.String("go.data.influxdb.token")
 		InfluxdbBucket = cfg.String("go.data.influxdb.bucket")
 		InfluxdbOrg = cfg.String("go.data.influxdb.org")
-		opts := &influxdb2.Options{}
-		opts.SetHTTPRequestTimeout(300)
-		Influxdb = influxdb2.NewClientWithOptions(influxdbUrl, token, opts)
+		logLevel := cfg.Int("go.data.influxdb.logLevel")
+		timeout := cfg.Int("go.data.influxdb.timeout")
+		batchSize := cfg.Int("go.data.influxdb.batchSize")
+		if timeout == 0 {
+			timeout = 1000
+		}
+		if batchSize == 0 {
+			batchSize = 100
+		}
+		Influxdb = influxdb2.NewClientWithOptions(influxdbUrl, token, influxdb2.DefaultOptions().
+			SetLogLevel(uint(logLevel)).
+			SetHTTPRequestTimeout(uint(timeout)).
+			SetBatchSize(uint(batchSize)))
 	}
 }
 
