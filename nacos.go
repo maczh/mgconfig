@@ -20,7 +20,7 @@ import (
 )
 
 var Nacos naming_client.INamingClient
-var cluster string
+var cluster, group string
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 var lan bool
 var lanNetwork string
@@ -58,6 +58,10 @@ func registerNacos() {
 		serverConfigs := []constant.ServerConfig{}
 		ipstr := cfg.String("go.nacos.server")
 		portstr := cfg.String("go.nacos.port")
+		group = cfg.String("go.nacos.group")
+		if group == "" {
+			group = "DEFAULT_GROUP"
+		}
 		ips := strings.Split(ipstr, ",")
 		ports := strings.Split(portstr, ",")
 		for i, ip := range ips {
@@ -110,20 +114,17 @@ func registerNacos() {
 			Healthy:     true,
 			Ephemeral:   true,
 			Metadata:    metadata,
+			GroupName:   group,
 		})
 		if !success {
 			logger.Error("Nacos注册服务失败:" + regerr.Error())
 			return
 		}
 
-		groupName := "DEFAULT_GROUP"
-		if conf.Exists("go.nacos.subscribeGroupName") {
-			groupName = conf.String("go.nacos.subscribeGroupName")
-		}
 		err = Nacos.Subscribe(&vo.SubscribeParam{
 			ServiceName: conf.String("go.application.name"),
 			Clusters:    []string{cluster},
-			GroupName:   groupName,
+			GroupName:   group,
 			SubscribeCallback: func(services []model.SubscribeService, err error) {
 				logger.Debug("callback return services:" + toJSON(services))
 			},
@@ -139,10 +140,18 @@ func GetNacosServiceURL(servicename string) string {
 	instance, err := Nacos.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
 		ServiceName: servicename,
 		Clusters:    []string{cluster},
+		GroupName:   group,
 	})
 	if err != nil {
-		logger.Error("获取Nacos服务" + servicename + "失败:" + err.Error())
-		return ""
+		instance, err = Nacos.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
+			ServiceName: servicename,
+			Clusters:    []string{cluster},
+			GroupName:   "DEFAULT_GROUP",
+		})
+		if err != nil {
+			logger.Error("获取Nacos服务" + servicename + "失败:" + err.Error())
+			return ""
+		}
 	}
 	url := "http://" + instance.Ip + ":" + strconv.Itoa(int(instance.Port))
 	if instance.Metadata != nil && instance.Metadata["ssl"] == "true" {
@@ -153,15 +162,10 @@ func GetNacosServiceURL(servicename string) string {
 }
 
 func deRegisterNacos() {
-	groupName := "DEFAULT_GROUP"
-	if conf.Exists("go.nacos.subscribeGroupName") {
-		groupName = conf.String("go.nacos.subscribeGroupName")
-	}
-
 	err := Nacos.Unsubscribe(&vo.SubscribeParam{
 		ServiceName: conf.String("go.application.name"),
 		Clusters:    []string{cluster},
-		GroupName:   groupName,
+		GroupName:   group,
 		SubscribeCallback: func(services []model.SubscribeService, err error) {
 			logger.Debug("callback return services:" + toJSON(services))
 		},
