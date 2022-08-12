@@ -104,6 +104,9 @@ func registerNacos() {
 			port = uint64(conf.Int64("go.application.port_ssl"))
 			metadata["ssl"] = "true"
 		}
+		if conf.Exists("go.application.debug") && conf.Bool("go.application.debug") {
+			metadata["debug"] = "true"
+		}
 		success, regerr := Nacos.RegisterInstance(vo.RegisterInstanceParam{
 			Ip:          ip,
 			Port:        port,
@@ -137,20 +140,27 @@ func registerNacos() {
 }
 
 func GetNacosServiceURL(servicename string) string {
-	instance, err := Nacos.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
-		ServiceName: servicename,
-		Clusters:    []string{cluster},
-		GroupName:   group,
-	})
-	if err != nil {
+	var instance *model.Instance
+	var err error
+	for i := 0; i < 3; i++ {
 		instance, err = Nacos.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
 			ServiceName: servicename,
 			Clusters:    []string{cluster},
-			GroupName:   "DEFAULT_GROUP",
+			GroupName:   group,
 		})
 		if err != nil {
-			logger.Error("获取Nacos服务" + servicename + "失败:" + err.Error())
-			return ""
+			instance, err = Nacos.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
+				ServiceName: servicename,
+				Clusters:    []string{cluster},
+				GroupName:   "DEFAULT_GROUP",
+			})
+			if err != nil {
+				logger.Error("获取Nacos服务" + servicename + "失败:" + err.Error())
+				return ""
+			}
+		}
+		if instance.Metadata != nil && instance.Metadata["debug"] != "true" {
+			break
 		}
 	}
 	url := "http://" + instance.Ip + ":" + strconv.Itoa(int(instance.Port))
