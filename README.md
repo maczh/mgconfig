@@ -1,5 +1,7 @@
 # mgconfig Go语言统一配置管理
 
+最新版本号 v1.1.9
+
 ## 配置文件格式
 
 仅支持.yml格式
@@ -247,7 +249,7 @@ func GetUserById(id uint, dbName string) (*pojo.User) {
 }
 ```
 
-### v1.0.10版本更新说明
+### v1.1.9版本更新说明
 + MySQL支持多库连接
 + mongodb支持多库连接
 + redis支持多库连接
