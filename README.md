@@ -86,6 +86,24 @@ go:
       timeout: 30   #空闲连接超时，秒，默认60秒
       life: 5       #连接生命周期，分钟，默认60分钟
 ```
++ mysql多库连接配置范例 mysql-multidb-test.yml
+```yaml
+go:
+  data:
+    mysql: 
+      multidb: true
+      dbNames: test1,test2
+      test1: user1:pwd1@tcp(xxx.xxx.xxx.xxx:3306)/dbname1?charset=utf8&parseTime=True&loc=Local
+      test2: user2:pwd2@tcp(xxx.xxx.xxx.xxx:3306)/dbname2?charset=utf8&parseTime=True&loc=Local
+    mysql_debug: true   #打开调试模式
+    mysql_pool:     #连接池设置,若无此项则使用单一长连接
+      max: 200      #实际最大连接数
+      total: 1000   #最大并发数,不填默认为最大连接数5倍
+      timeout: 30   #空闲连接超时，秒，默认60秒
+      life: 5       #连接生命周期，分钟，默认60分钟
+```
+
+
 + mongodb配置范例 mongodb-test.yml
 ```yaml
 go:
@@ -97,6 +115,26 @@ go:
     mongo_pool:     #连接池设置,若无此项则使用单一长连接
       max: 20       #最大连接数
 ```
+
++ mongodb多库连接配置范例 mongodb-multidb-test.yml
+```yaml
+go:
+  data:
+    mongodb:
+      multidb: true
+      dbNames: test1,test2
+      test1:
+          uri: mongodb://user1:pwd1@xxx.xxx.xxx.xxx:port/dbname1 #当使用复制集时 mongodb://user:pwd@192.168..3.5:27017,192.168.3.6:27017/dbname?replicaSet=replsetname
+          db: dbname1
+      test2:
+        uri: mongodb://user2:pwd2@xxx.xxx.xxx.xxx:port/dbname2 #当使用复制集时 mongodb://user:pwd@192.168..3.5:27017,192.168.3.6:27017/dbname?replicaSet=replsetname
+        db: dbname2
+      debug: true   #打开调试模式
+    mongo_pool:     #连接池设置,若无此项则使用单一长连接
+      max: 20       #最大连接数
+```
+
+
 + redis配置范例 redis-test.yml
 ```yaml
 go:
@@ -107,6 +145,30 @@ go:
       password: password
       database: 1
       timeout: 1000
+    redis_pool:
+      min: 3        #最小空闲连接数,默认2
+      max: 200      #连接池大小，最小默认10
+      idle: 10      #空闲超时，分钟,默认5分钟
+      timeout: 300  #连接超时，秒，默认60秒
+```
+
++ redis多库连接配置范例 redis-multidb-test.yml
+```yaml
+go:
+  data:
+    redis:
+      multidb: true
+      dbNames: test1,test2
+      test1:
+          host: xxx.xxx.xxx.xxx
+          port: 6379
+          password: password
+          database: 1
+      test2:
+        host: xxx.xxx.xxx.xxx
+        port: 6379
+        password: password
+        database: 2
     redis_pool:
       min: 3        #最小空闲连接数,默认2
       max: 200      #连接池大小，最小默认10
@@ -151,7 +213,7 @@ go:
 ```
 
 ### 在应用中使用MySQL单连接范例(Gorm v2),连接池
-
+- 单库连接
 ```go
 func GetUserById(id uint) (*pojo.User) {
     user := new(pojo.User)
@@ -167,6 +229,28 @@ func GetUserById(id uint) (*pojo.User) {
      return user
 }
 ```
+
+- 多库连接时
+```go
+func GetUserById(id uint, dbName string) (*pojo.User) {
+    user := new(pojo.User)
+    //从连接池中获取连接
+    mysql,err := mgconf.GetMySQLConnection(dbName)
+    if err != nil {
+    logs.Error("MySQL connection error: {}",err.Error())
+    return nil
+    }
+    mysql.Table("user_info").Where("id = ?",id).First(&user)
+    logs.Debug("查詢結果:{}",user)
+    //归还连接到连接池(无需显式归还)
+     return user
+}
+```
+
+### v1.0.10版本更新说明
++ MySQL支持多库连接
++ mongodb支持多库连接
++ redis支持多库连接
 
 ### v1.0.9版本更新说明
 + mysql/MySQL改用database/sql自带的连接池，且必须使用连接池配置，不需要归还连接，但必须使用获取连接函数，要处理获取连接返回的error
