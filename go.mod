@@ -11,10 +11,10 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/knadh/koanf v1.3.0
 	github.com/levigross/grequests v0.0.0-20190908174114-253788527a1a
+	github.com/maczh/jazz v1.0.0
 	github.com/nacos-group/nacos-sdk-go v1.0.9
 	github.com/olivere/elastic v6.2.37+incompatible
 	github.com/sadlil/gologger v0.0.0-20180131031757-2507bf651df8
-	github.com/socifi/jazz v0.0.0-20190320083647-de4180400893
 	github.com/tsuna/gohbase v0.0.0-20211021135033-7498896f8173
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 	gorm.io/driver/mysql v1.3.4

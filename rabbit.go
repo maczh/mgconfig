@@ -5,7 +5,7 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/levigross/grequests"
-	"github.com/socifi/jazz"
+	"github.com/maczh/jazz"
 )
 
 var rabbit *jazz.Connection
@@ -58,6 +58,7 @@ func RabbitCreateNewQueue(queueName string) {
 	queueSpec := &jazz.QueueSpec{
 		Durable:  true,
 		Bindings: []jazz.Binding{*binding},
+		Args:     nil,
 	}
 	queues[queueName] = *queueSpec
 	setting := &jazz.Settings{
@@ -66,5 +67,26 @@ func RabbitCreateNewQueue(queueName string) {
 	err := rabbit.CreateScheme(*setting)
 	if err != nil {
 		logger.Error("RabbitMQ创建队列失败:" + err.Error())
+	}
+}
+
+func RabbitCreateDeadLetterQueue(queueName, toQueueName string, ttl int) {
+	queues := make(map[string]jazz.QueueSpec)
+	binding := &jazz.Binding{
+		Exchange: exchange,
+		Key:      queueName,
+	}
+	queueSpec := &jazz.QueueSpec{
+		Durable:  true,
+		Bindings: []jazz.Binding{*binding},
+		Args:     jazz.DeadLetterArgs(ttl, exchange, toQueueName),
+	}
+	queues[queueName] = *queueSpec
+	setting := &jazz.Settings{
+		Queues: queues,
+	}
+	err := rabbit.CreateScheme(*setting)
+	if err != nil {
+		logger.Error("RabbitMQ创建死信队列失败:" + err.Error())
 	}
 }
