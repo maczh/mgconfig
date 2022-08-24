@@ -1,6 +1,6 @@
 # mgconfig Go语言统一配置管理
 
-最新版本号 v1.1.9
+最新版本号 v1.1.10
 
 ## 配置文件格式
 
@@ -248,6 +248,9 @@ func GetUserById(id uint, dbName string) (*pojo.User) {
      return user
 }
 ```
+
+### v1.1.10版本更新说明
++ 新增RabbitMQ创建死信队列函数
 
 ### v1.1.9版本更新说明
 + MySQL支持多库连接
