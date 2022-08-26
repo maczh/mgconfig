@@ -139,24 +139,26 @@ func registerNacos() {
 
 }
 
-func GetNacosServiceURL(servicename string) string {
+func GetNacosServiceURL(servicename string) (string, string) {
 	var instance *model.Instance
 	var err error
+	serviceGroup := group
 	for i := 0; i < 3; i++ {
 		instance, err = Nacos.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
 			ServiceName: servicename,
 			Clusters:    []string{cluster},
-			GroupName:   group,
+			GroupName:   serviceGroup,
 		})
 		if err != nil {
+			serviceGroup = "DEFAULT_GROUP"
 			instance, err = Nacos.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
 				ServiceName: servicename,
 				Clusters:    []string{cluster},
-				GroupName:   "DEFAULT_GROUP",
+				GroupName:   serviceGroup,
 			})
 			if err != nil {
 				logger.Error("获取Nacos服务" + servicename + "失败:" + err.Error())
-				return ""
+				return "", ""
 			}
 		}
 		if instance.Metadata != nil && instance.Metadata["debug"] != "true" {
@@ -168,7 +170,7 @@ func GetNacosServiceURL(servicename string) string {
 		url = "https://" + instance.Ip + ":" + strconv.Itoa(int(instance.Port))
 	}
 	logger.Debug("Nacos获取" + servicename + "服务成功:" + url)
-	return url
+	return url, serviceGroup
 }
 
 func deRegisterNacos() {
