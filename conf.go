@@ -55,7 +55,7 @@ func InitConfig(cf string) {
 	}
 	if strings.Contains(configs, "nacos") {
 		logger.Info("正在注册到Nacos")
-		registerNacos()
+		registerToNacos()
 	}
 	if strings.Contains(configs, "consul") {
 		logger.Info("正在注册到Consul")
@@ -148,7 +148,7 @@ func SafeExit() {
 	}
 	if strings.Contains(configs, "nacos") {
 		logger.Info("正在注销Nacos")
-		deRegisterNacos()
+		deRegisterFromNacos()
 	}
 	if strings.Contains(configs, "consul") {
 		logger.Info("正在注销Consul")

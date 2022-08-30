@@ -1,0 +1,32 @@
+go:
+  application:
+    name: fcp-tenant
+    port: 8022
+  config:
+    server: http://59.56.77.23:58848/
+    server_type: nacos
+    env: test
+    type: .yml
+    mid: "-"
+    used: rabbitmq
+    prefix:
+      mysql: mysql-v2
+      mongodb: mongo-multidb
+      redis: redis-multidb
+      ssdb: ssdb
+      rabbitmq: rabbitmq
+      nacos: nacos
+  log:
+    req: FcpTenantRequestLog
+  logger:
+    level: debug
+    out: console,file
+    file: /opt/logs/fcp-tenant
+zimg:
+  host:
+    test: http://59.56.77.23:4869/
+    prod: http://59.56.77.23:4869/
+  path: /images/
+local:
+  imgPath: /upload/image/
+partner: netacc
