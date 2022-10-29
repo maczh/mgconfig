@@ -85,6 +85,10 @@ func InitConfig(cf string) {
 		logger.Info("正在连接Influxdb")
 		influxdbInit()
 	}
+	if strings.Contains(configs, "kafka") {
+		logger.Info("正在连接kafka")
+		Kafka.Init()
+	}
 
 	//设置定时任务自动检查
 	ticker := time.NewTicker(time.Minute * AUTO_CHECK_MINUTES)
@@ -178,6 +182,10 @@ func SafeExit() {
 		logger.Info("正在关闭Influxdb连接")
 		influxdbClose()
 	}
+	if strings.Contains(configs, "kafka") {
+		logger.Info("正在关闭kafka连接")
+		Kafka.Close()
+	}
 
 }
 
@@ -191,7 +199,7 @@ func checkAll() {
 	}
 	if strings.Contains(configs, "MySQL") {
 		logger.Debug("正在检查MySQL")
-		mySqlCheck()
+		_, _ = mySqlCheck()
 	}
 	if strings.Contains(configs, "pgsql") {
 		logger.Debug("正在检查PostgreSQL")
@@ -220,6 +228,10 @@ func checkAll() {
 	if strings.Contains(configs, "couchdb") {
 		logger.Debug("正在检查Couchbase")
 		couchbaseCheck()
+	}
+	if strings.Contains(configs, "kafka") {
+		logger.Debug("正在检查kafka")
+		_ = Kafka.Check()
 	}
 }
 
