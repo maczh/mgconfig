@@ -1,6 +1,6 @@
 # mgconfig Go语言统一配置管理
 
-最新版本号 v1.1.10
+最新版本号 v1.1.12
 
 ## 配置文件格式
 
@@ -32,6 +32,7 @@
 ## 支持的消息队列
 
 + RabbitMQ (jazz)
++ Kafka (sarama)
 
 ## 支持的搜索引擎
 
@@ -248,6 +249,9 @@ func GetUserById(id uint, dbName string) (*pojo.User) {
      return user
 }
 ```
+
+### v1.1.12版本更新说明
++ 增加kafka支持
 
 ### v1.1.10版本更新说明
 + 新增RabbitMQ创建死信队列函数
